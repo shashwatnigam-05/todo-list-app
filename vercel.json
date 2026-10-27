@@ -1,0 +1,28 @@
+{
+  "builds": [
+    {
+      "src": "ToDoList.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/ToDoList.py"
+    },
+    {
+      "source": "/",
+      "destination": "/ToDoList.py"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/script.js",
+      "dest": "/script.js"
+    }
+  ]
+}

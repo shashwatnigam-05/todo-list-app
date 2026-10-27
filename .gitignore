@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.env
+
+# MacOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+tasks.db
+tasks.db
+*.db
+.env
+.pytest_cache/
+tests/__pycache__/
