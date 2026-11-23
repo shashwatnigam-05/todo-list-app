@@ -52,12 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const span = document.createElement('span');
             span.className = 'task-content';
-            span.textContent = task;
+            const taskTitle = typeof task === 'object' && task !== null ? task.title : task;
+            const taskId = typeof task === 'object' && task !== null ? task.id : index;
+            span.textContent = taskTitle;
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
             deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtn.onclick = () => deleteTask(index);
+            deleteBtn.onclick = () => deleteTask(taskId);
 
             li.appendChild(span);
             li.appendChild(deleteBtn);
