@@ -20,7 +20,8 @@ if DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     engine = create_engine(DATABASE_URL)
 else:
-    sqlite_path = BASE_DIR / "tasks.db"
+    sqlite_dir = Path("/tmp") if os.environ.get("VERCEL") else BASE_DIR
+    sqlite_path = sqlite_dir / "tasks.db"
     DATABASE_URL = f"sqlite:///{sqlite_path}"
     engine = create_engine(str(DATABASE_URL), connect_args={"check_same_thread": False})
 
