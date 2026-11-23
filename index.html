@@ -1,30 +1,331 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasks</title>
+    <title>TaskFlow — Happening Productivity Workspace</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>My Tasks</h1>
-            <p id="task-count">0 tasks pending</p>
+    <!-- Celebration Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Background Ambient Glows -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <div class="workspace-wrapper">
+        <!-- Top Navigation & Utility Bar -->
+        <header class="top-bar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                    <h1>TaskFlow</h1>
+                    <p id="greeting-text" class="subtitle">Make today productive</p>
+                </div>
+            </div>
+
+            <!-- View Switcher: List / Kanban / History -->
+            <div class="view-switcher" role="tablist" aria-label="Workspace View">
+                <button class="view-btn active" data-view="list" title="List View">
+                    <i class="fas fa-list-check"></i>
+                    <span>List</span>
+                </button>
+                <button class="view-btn" data-view="kanban" title="Kanban Board View">
+                    <i class="fas fa-columns"></i>
+                    <span>Kanban</span>
+                </button>
+                <button class="view-btn" data-view="history" title="Task Activity History">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>History</span>
+                    <span id="history-badge" class="nav-badge">0</span>
+                </button>
+            </div>
+
+            <!-- Right Controls: Streak, Sound, Theme -->
+            <div class="top-controls">
+                <div class="streak-pill" title="Completed tasks streak">
+                    <i class="fas fa-fire"></i>
+                    <span id="streak-count">0</span>
+                    <span class="streak-label">Done</span>
+                </div>
+                <button id="sound-toggle" class="icon-btn" title="Toggle Sound Effects" aria-label="Toggle Sound Effects">
+                    <i class="fas fa-volume-high"></i>
+                </button>
+                <button id="theme-toggle" class="icon-btn" title="Switch Dark / Light Theme" aria-label="Switch Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
         </header>
 
-        <form id="task-form">
-            <input type="text" id="task-input" placeholder="What needs to be done?" autocomplete="off" required>
-            <button type="submit" id="add-btn"><i class="fas fa-plus"></i></button>
-        </form>
+        <!-- Stats & Progress Bar Card -->
+        <section class="stats-banner">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-label">Total Tasks</span>
+                    <strong id="stat-total" class="stat-value">0</strong>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">In Progress</span>
+                    <strong id="stat-active" class="stat-value accent-blue">0</strong>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Completed</span>
+                    <strong id="stat-completed" class="stat-value accent-green">0</strong>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">High Priority</span>
+                    <strong id="stat-high" class="stat-value accent-red">0</strong>
+                </div>
+            </div>
 
-        <ul id="task-list">
-            <!-- Tasks will be injected here via JavaScript -->
-        </ul>
+            <div class="progress-wrapper">
+                <div class="progress-header">
+                    <span id="task-count">0 tasks pending</span>
+                    <span id="progress-percent">0% complete</span>
+                </div>
+                <div class="progress-track">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Task Creation Composer -->
+        <section class="composer-card">
+            <form id="task-form">
+                <div class="composer-main">
+                    <div class="input-wrapper">
+                        <i class="fas fa-sparkles input-icon"></i>
+                        <input
+                            type="text"
+                            id="task-input"
+                            placeholder="What needs to get done? (Press '/' to focus, double-click any task to edit)"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                    <button type="submit" id="add-btn" class="primary-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Task</span>
+                    </button>
+                </div>
+
+                <div class="composer-options">
+                    <div class="option-group">
+                        <label for="task-priority"><i class="fas fa-flag"></i> Priority</label>
+                        <select id="task-priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High 🔥</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="task-category"><i class="fas fa-tag"></i> Category</label>
+                        <select id="task-category">
+                            <option value="General">📌 General</option>
+                            <option value="Work">💼 Work</option>
+                            <option value="Study">📚 Study</option>
+                            <option value="Personal">🏠 Personal</option>
+                            <option value="Health">💪 Health</option>
+                            <option value="Coding">💻 Coding</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="task-status"><i class="fas fa-layer-group"></i> Stage</label>
+                        <select id="task-status">
+                            <option value="todo" selected>To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="task-due"><i class="regular fa-calendar"></i> Due Date</label>
+                        <input type="date" id="task-due">
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Search & Filter Toolbar (Shared by List & Kanban views) -->
+        <section id="filter-toolbar" class="toolbar-card">
+            <div class="search-box">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Search tasks by title or category...">
+                <button id="clear-search" class="clear-search-btn hidden" title="Clear search">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="filter-tabs" role="tablist">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="active">Active</button>
+                <button class="filter-tab" data-filter="completed">Completed</button>
+                <button class="filter-tab" data-filter="high">🔥 High Priority</button>
+            </div>
+
+            <div class="toolbar-actions">
+                <select id="category-filter" class="compact-select" title="Filter by Category">
+                    <option value="all">All Categories</option>
+                    <option value="General">📌 General</option>
+                    <option value="Work">💼 Work</option>
+                    <option value="Study">📚 Study</option>
+                    <option value="Personal">🏠 Personal</option>
+                    <option value="Health">💪 Health</option>
+                    <option value="Coding">💻 Coding</option>
+                </select>
+                <button id="clear-completed-btn" class="ghost-danger-btn" title="Remove all completed tasks">
+                    <i class="fas fa-broom"></i>
+                    <span>Clear Done</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 1: Interactive List View -->
+        <main id="view-list" class="view-panel active">
+            <ul id="task-list" class="task-list">
+                <!-- Tasks injected via script.js -->
+            </ul>
+            <div id="empty-state" class="empty-state hidden">
+                <div class="empty-icon"><i class="fas fa-rocket"></i></div>
+                <h3>Your board is clear!</h3>
+                <p>Add a task above or adjust your filters to get rolling.</p>
+            </div>
+        </main>
+
+        <!-- VIEW 2: Kanban Board View -->
+        <section id="view-kanban" class="view-panel hidden">
+            <div class="kanban-grid">
+                <div class="kanban-column" data-status="todo">
+                    <div class="kanban-col-header">
+                        <span class="status-dot dot-todo"></span>
+                        <h3>To Do</h3>
+                        <span id="count-todo" class="col-count">0</span>
+                    </div>
+                    <div id="kanban-todo" class="kanban-dropzone" data-status="todo"></div>
+                </div>
+
+                <div class="kanban-column" data-status="in_progress">
+                    <div class="kanban-col-header">
+                        <span class="status-dot dot-progress"></span>
+                        <h3>In Progress</h3>
+                        <span id="count-in_progress" class="col-count">0</span>
+                    </div>
+                    <div id="kanban-in_progress" class="kanban-dropzone" data-status="in_progress"></div>
+                </div>
+
+                <div class="kanban-column" data-status="done">
+                    <div class="kanban-col-header">
+                        <span class="status-dot dot-done"></span>
+                        <h3>Done</h3>
+                        <span id="count-done" class="col-count">0</span>
+                    </div>
+                    <div id="kanban-done" class="kanban-dropzone" data-status="done"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: Task Activity History Timeline -->
+        <section id="view-history" class="view-panel hidden">
+            <div class="history-header-card">
+                <div class="history-title-group">
+                    <h2><i class="fas fa-clock-rotate-left"></i> Activity & Task History</h2>
+                    <p>Every task created, completed, moved, edited, or deleted — with one-click restore.</p>
+                </div>
+
+                <div class="history-controls">
+                    <div class="history-filter-pills">
+                        <button class="history-pill active" data-hfilter="all">All Activity</button>
+                        <button class="history-pill" data-hfilter="created">Created</button>
+                        <button class="history-pill" data-hfilter="completed">Completed</button>
+                        <button class="history-pill" data-hfilter="moved">Moved</button>
+                        <button class="history-pill" data-hfilter="edited">Edited</button>
+                        <button class="history-pill" data-hfilter="deleted">Deleted</button>
+                    </div>
+                    <button id="clear-history-btn" class="ghost-danger-btn" title="Clear activity history log">
+                        <i class="fas fa-trash-can"></i>
+                        <span>Clear Log</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="history-timeline" class="history-timeline">
+                <!-- History timeline items injected via script.js -->
+            </div>
+
+            <div id="history-empty" class="empty-state hidden">
+                <div class="empty-icon"><i class="fas fa-hourglass-half"></i></div>
+                <h3>No activity recorded yet</h3>
+                <p>As you add, complete, drag, or edit tasks, your timeline will appear here.</p>
+            </div>
+        </section>
     </div>
-    
+
+    <!-- Inline Edit Modal -->
+    <div id="edit-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-to-square"></i> Edit Task</h3>
+                <button id="close-modal-btn" class="icon-btn"><i class="fas fa-xmark"></i></button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="modal-field">
+                    <label for="edit-title">Task Title</label>
+                    <input type="text" id="edit-title" required maxlength="500">
+                </div>
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label for="edit-priority">Priority</label>
+                        <select id="edit-priority">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High 🔥</option>
+                        </select>
+                    </div>
+                    <div class="modal-field">
+                        <label for="edit-category">Category</label>
+                        <select id="edit-category">
+                            <option value="General">📌 General</option>
+                            <option value="Work">💼 Work</option>
+                            <option value="Study">📚 Study</option>
+                            <option value="Personal">🏠 Personal</option>
+                            <option value="Health">💪 Health</option>
+                            <option value="Coding">💻 Coding</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label for="edit-status">Stage</label>
+                        <select id="edit-status">
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+                    <div class="modal-field">
+                        <label for="edit-due">Due Date</label>
+                        <input type="date" id="edit-due">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-edit-btn" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="primary-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
     <script src="script.js"></script>
 </body>
 </html>

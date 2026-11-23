@@ -1,15 +1,19 @@
-# To-Do List App
+# TaskFlow — Full-Stack Productivity & To-Do Workspace
 
-A full-stack To-Do List application with a FastAPI backend, SQLAlchemy ORM, and a Vanilla JavaScript frontend. Supports PostgreSQL (Vercel) and SQLite (local) automatically.
+A modern, full-stack productivity workspace built with **FastAPI**, **SQLAlchemy 2.0**, and **Vanilla JavaScript**. Features an interactive List view, drag-and-drop **Kanban Board**, and a complete **Activity & Task History Timeline** with one-click task restoration.
+
+**Live Demo:** [https://todo-list-app-one-sable.vercel.app](https://todo-list-app-one-sable.vercel.app)
 
 ## Features
 
-- Add, view, and delete tasks via a REST API
-- Tasks identified by stable database IDs (not fragile array indices)
-- Input validation: empty titles and titles over 500 characters are rejected with clear errors
-- PostgreSQL in production (via `POSTGRES_URL`), SQLite locally — zero-config switching
-- Interactive API docs at `/docs` (FastAPI Swagger UI)
-- Deployable to Vercel (serverless Python)
+- **Rich Task Metadata:** Priority levels (`Low`, `Medium`, `High 🔥`), categories (`General`, `Work`, `Study`, `Personal`, `Health`, `Coding`), due dates with overdue detection, and workflow stages (`To Do`, `In Progress`, `Done`).
+- **3 Interactive Views:**
+  - **List View:** Drag-and-drop reordering, completion checkboxes, double-click inline editing, and quick filters.
+  - **Kanban Board View:** Drag tasks across `To Do`, `In Progress`, and `Done` columns with live column counters.
+  - **Activity History Timeline:** Automatic audit log of every task created, completed, reopened, moved, edited, deleted, or restored — with filter pills and **one-click Restore** for deleted tasks.
+- **Search, Filters & Live Progress Bar:** Instant search by title or category, filter tabs (`All`, `Active`, `Completed`, `🔥 High Priority`), category selector, and animated completion progress bar.
+- **Delight & Personalization:** Celebration confetti burst on task completion, synthesized Web Audio sound effects (with mute toggle), completion streak counter, and persistent Dark / Light theme switcher.
+- **Zero-Config Database Switching:** Uses PostgreSQL in production (`POSTGRES_URL` / `DATABASE_URL`) and SQLite locally (with automatic schema migration).
 
 ## Tech Stack
 
@@ -18,83 +22,31 @@ A full-stack To-Do List application with a FastAPI backend, SQLAlchemy ORM, and 
 | API | Python 3.12 · FastAPI · Uvicorn |
 | ORM | SQLAlchemy 2.0 |
 | Validation | Pydantic v2 |
-| Database | PostgreSQL (production) · SQLite (local) |
-| Frontend | HTML5 · CSS3 · Vanilla JavaScript |
+| Database | PostgreSQL (production) · SQLite (local/serverless fallback) |
+| Frontend | HTML5 · CSS3 (Glassmorphism + Dark/Light themes) · Vanilla JS |
 | Deployment | Vercel |
-
-## Local Development
-
-### Prerequisites
-- Python 3.12+
-
-### Setup
-
-```bash
-# 1. Clone the repository
-git clone <repo-url>
-cd todo-list-app
-
-# 2. Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Run the development server
-python ToDoList.py
-```
-
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.  
-API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
-A `tasks.db` SQLite file is created automatically in the project root — it is listed in `.gitignore`.
-
-### Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `POSTGRES_URL` | PostgreSQL connection string (Vercel Postgres format) |
-| `DATABASE_URL` | SQLAlchemy-compatible DB URL (alternative to `POSTGRES_URL`) |
-
-If neither is set, SQLite is used automatically for local development.
 
 ## API Reference
 
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| GET | `/api/tasks` | — | List all tasks (`[{id, title}]`) |
-| POST | `/api/tasks` | `{"title": "..."}` | Add a task |
-| DELETE | `/api/tasks/{id}` | — | Delete a task by its database ID |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/tasks` | List all tasks ordered by position |
+| `POST` | `/api/tasks` | Create a task (`title`, `priority`, `category`, `due_date`, `status`) |
+| `PATCH` | `/api/tasks/{id}` | Update task fields, toggle completion, or move Kanban stage |
+| `POST` | `/api/tasks/reorder` | Persist drag-and-drop ordering and Kanban column changes |
+| `DELETE` | `/api/tasks/completed` | Bulk clear all completed tasks |
+| `DELETE` | `/api/tasks/{id}` | Delete a task by ID (logged in history) |
+| `GET` | `/api/history` | List activity history timeline (`?action=created\|completed\|moved\|edited\|deleted`) |
+| `POST` | `/api/history/{id}/restore` | Restore a deleted task from history back to the board |
+| `DELETE` | `/api/history` | Clear activity history log |
 
-Tasks are returned as `{"id": int, "title": str}` objects. The `id` is a stable database primary key.
-
-## Running Tests
+## Local Development
 
 ```bash
-pip install pytest httpx
-pytest tests/ -v
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python ToDoList.py
 ```
 
-Tests run against an in-memory SQLite database — no setup required.
-
-## Vercel Deployment
-
-1. Connect the repository to Vercel.
-2. Add a **Vercel Postgres** database in the Vercel dashboard (sets `POSTGRES_URL` automatically), or configure any PostgreSQL `POSTGRES_URL` manually.
-3. Deploy — Vercel runs the FastAPI app via `@vercel/python`.
-
-## Project Structure
-
-```
-todo-list-app/
-├── ToDoList.py         # FastAPI application and SQLAlchemy models
-├── index.html          # Frontend HTML
-├── style.css           # Frontend styles
-├── script.js           # Frontend JavaScript (fetches the API)
-├── requirements.txt
-├── vercel.json
-├── .env.example
-└── tests/
-    └── test_todo.py    # Pytest test suite (11 tests)
-```
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. Interactive Swagger docs are available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
